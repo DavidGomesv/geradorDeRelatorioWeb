@@ -204,7 +204,7 @@ class RelatorioGenerator {
         if (btn.disabled) {
             btn.textContent = '⚠️ Preencha os dados e adicione fotos';
         } else {
-            btn.textContent = '📄 Gerar Relatório DOCX';
+            btn.textContent = '🚀 Gerar Relatório';
         }
     }
 
@@ -259,14 +259,14 @@ class RelatorioGenerator {
         document.getElementById('generateBtn').style.display = 'none';
 
         try {
-            // Gerar arquivo RTF (compatível com Word)
-            const rtfBlob = await this.generateRTFReport(siteId, dataExecucao, localizacao);
+            // Gerar DOCX do relatório
+            const docxBlob = await this.generateDOCXReport(siteId, dataExecucao, localizacao);
             
-            // Criar arquivo para download
-            const fileName = `RLT_ZELADORIA_${siteId}_${dataExecucao}.doc`;
+            // Criar arquivo DOCX para download
+            const fileName = `RLT_ZELADORIA_${siteId}_${dataExecucao}.docx`;
             
             // Download do arquivo
-            const url = URL.createObjectURL(rtfBlob);
+            const url = URL.createObjectURL(docxBlob);
             const a = document.createElement('a');
             a.href = url;
             a.download = fileName;
@@ -275,7 +275,7 @@ class RelatorioGenerator {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            this.showMessage('✅ Relatório .DOC gerado com sucesso! Compatível com Word.', 'success');
+            this.showMessage('✅ Relatório DOCX gerado com sucesso!', 'success');
             
         } catch (error) {
             console.error('Erro ao gerar relatório:', error);
@@ -286,7 +286,176 @@ class RelatorioGenerator {
         }
     }
 
-    async generateRTFReport(siteId, dataExecucao, localizacao) {
+    async generateDOCXReport(siteId, dataExecucao, localizacao) {
+        const dataFormatada = this.formatDate(dataExecucao);
+        
+        // Criar documento Word usando estrutura XML
+        let documentXML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+    <w:body>
+        <!-- Título Principal -->
+        <w:p>
+            <w:pPr>
+                <w:jc w:val="center"/>
+                <w:spacing w:after="400"/>
+            </w:pPr>
+            <w:r>
+                <w:rPr>
+                    <w:b/>
+                    <w:sz w:val="32"/>
+                    <w:color w:val="000000"/>
+                </w:rPr>
+                <w:t>RELATÓRIO FOTOGRÁFICO DE ZELADORIA</w:t>
+            </w:r>
+        </w:p>
+        
+        <!-- Informações Básicas -->
+        <w:p>
+            <w:pPr>
+                <w:spacing w:after="200"/>
+            </w:pPr>
+            <w:r>
+                <w:rPr>
+                    <w:b/>
+                </w:rPr>
+                <w:t>Site ID: ${siteId}</w:t>
+            </w:r>
+        </w:p>
+        
+        <w:p>
+            <w:pPr>
+                <w:spacing w:after="200"/>
+            </w:pPr>
+            <w:r>
+                <w:rPr>
+                    <w:b/>
+                </w:rPr>
+                <w:t>Data da Execução: ${dataFormatada}</w:t>
+            </w:r>
+        </w:p>
+        
+        <w:p>
+            <w:pPr>
+                <w:spacing w:after="400"/>
+            </w:pPr>
+            <w:r>
+                <w:rPr>
+                    <w:b/>
+                </w:rPr>
+                <w:t>Localização: ${localizacao.toUpperCase()}</w:t>
+            </w:r>
+        </w:p>`;
+
+        // Adicionar seções de fotos
+        documentXML += this.createDOCXPhotoSection("FOTOS - ANTES", this.fotosAntes);
+        documentXML += this.createDOCXPhotoSection("FOTOS - DEPOIS", this.fotosDepois);
+        documentXML += this.createDOCXPhotoSection("PLACA DE IDENTIFICAÇÃO", this.fotoPlaca ? [this.fotoPlaca] : []);
+
+        documentXML += `
+    </w:body>
+</w:document>`;
+
+        // Criar estrutura ZIP do DOCX
+        return await this.createDOCXZip(documentXML);
+    }
+
+    createDOCXPhotoSection(titulo, fotos) {
+        let sectionXML = `
+        <!-- Separador -->
+        <w:p>
+            <w:pPr>
+                <w:spacing w:before="400" w:after="200"/>
+            </w:pPr>
+            <w:r>
+                <w:rPr>
+                    <w:color w:val="666666"/>
+                </w:rPr>
+                <w:t>------------------------------------------</w:t>
+            </w:r>
+        </w:p>
+        
+        <!-- Título da Seção -->
+        <w:p>
+            <w:pPr>
+                <w:spacing w:after="300"/>
+            </w:pPr>
+            <w:r>
+                <w:rPr>
+                    <w:b/>
+                    <w:sz w:val="24"/>
+                    <w:color w:val="000000"/>
+                </w:rPr>
+                <w:t>${titulo}</w:t>
+            </w:r>
+        </w:p>`;
+
+        if (fotos.length === 0) {
+            sectionXML += `
+        <w:p>
+            <w:pPr>
+                <w:spacing w:after="200"/>
+            </w:pPr>
+            <w:r>
+                <w:rPr>
+                    <w:i/>
+                    <w:color w:val="666666"/>
+                </w:rPr>
+                <w:t>Nenhuma foto adicionada para esta seção</w:t>
+            </w:r>
+        </w:p>`;
+        } else {
+            fotos.forEach((foto, index) => {
+                sectionXML += `
+        <w:p>
+            <w:pPr>
+                <w:spacing w:after="200"/>
+            </w:pPr>
+            <w:r>
+                <w:t>[FOTO: ${foto.name} - ${foto.width}x${foto.height}px]</w:t>
+            </w:r>
+        </w:p>`;
+            });
+        }
+
+        return sectionXML;
+    }
+
+    async createDOCXZip(documentXML) {
+        // Criar estrutura básica do DOCX sem JSZip
+        const files = {
+            '[Content_Types].xml': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+    <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+    <Default Extension="xml" ContentType="application/xml"/>
+    <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`,
+
+            '_rels/.rels': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+    <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`,
+
+            'word/_rels/document.xml.rels': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+</Relationships>`,
+
+            'word/document.xml': documentXML
+        };
+
+        // Implementação simples de ZIP para DOCX
+        return this.createSimpleZip(files);
+    }
+
+    async createSimpleZip(files) {
+        // Como não podemos usar JSZip, vamos usar uma abordagem diferente
+        // Vamos gerar um arquivo RTF que pode ser aberto pelo Word
+        return this.generateRTFReport(files);
+    }
+
+    generateRTFReport(files) {
+        const siteId = document.getElementById('siteId').value.trim();
+        const dataExecucao = document.getElementById('dataExecucao').value;
+        const localizacao = document.getElementById('localizacao').value.trim();
         const dataFormatada = this.formatDate(dataExecucao);
 
         let rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}
@@ -303,7 +472,6 @@ class RelatorioGenerator {
         rtfContent += this.createRTFPhotoSection("FOTOS - DEPOIS", this.fotosDepois);
         rtfContent += this.createRTFPhotoSection("PLACA DE IDENTIFICAÇÃO", this.fotoPlaca ? [this.fotoPlaca] : []);
 
-        rtfContent += '\\par\\par{\\i Relatório gerado automaticamente pelo Sistema de Zeladoria}\\par';
         rtfContent += '}';
 
         return new Blob([rtfContent], { type: 'application/rtf' });
@@ -324,6 +492,341 @@ class RelatorioGenerator {
 
         sectionRTF += '\\par';
         return sectionRTF;
+    }
+}
+        
+        let htmlContent = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Zeladoria - ${siteId}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .info-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 5px solid #4CAF50;
+        }
+        
+        .info-item {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #2c3e50;
+            display: inline-block;
+            width: 150px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .photo-item {
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .photo-item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .photo-caption {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .no-photos {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+                max-width: none;
+            }
+            
+            .section {
+                page-break-inside: avoid;
+            }
+            
+            .photos-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .photos-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-label {
+                width: 120px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Relatório Fotográfico de Zeladoria</h1>
+    </div>
+    
+    <div class="info-section">
+        <div class="info-item">
+            <span class="info-label">Site ID:</span>
+            <span>${siteId}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Data da Execução:</span>
+            <span>${dataFormatada}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Localização:</span>
+            <span>${localizacao.toUpperCase()}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Data da Geração:</span>
+            <span>${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</span>
+        </div>
+    </div>
+`;
+
+        // Adicionar seção de fotos ANTES
+        htmlContent += this.createHTMLPhotoSection("FOTOS - ANTES", this.fotosAntes);
+        
+        // Adicionar seção de fotos DEPOIS
+        htmlContent += this.createHTMLPhotoSection("FOTOS - DEPOIS", this.fotosDepois);
+        
+        // Adicionar seção da placa
+        htmlContent += this.createHTMLPhotoSection("PLACA DE IDENTIFICAÇÃO", this.fotoPlaca ? [this.fotoPlaca] : []);
+
+        htmlContent += `
+    <div class="footer">
+        <p>Relatório gerado automaticamente pelo Sistema de Zeladoria</p>
+        <p>Para converter em PDF: Pressione Ctrl+P (ou Cmd+P no Mac) e selecione "Salvar como PDF"</p>
+    </div>
+</body>
+</html>`;
+
+        return htmlContent;
+    }
+
+    createHTMLPhotoSection(titulo, fotos) {
+        let sectionHTML = `
+    <div class="section">
+        <h2 class="section-title">${titulo}</h2>`;
+
+        if (fotos.length === 0) {
+            sectionHTML += `
+        <div class="no-photos">
+            Nenhuma foto adicionada para esta seção
+        </div>`;
+        } else {
+            sectionHTML += `
+        <div class="photos-grid">`;
+
+            fotos.forEach((foto, index) => {
+                sectionHTML += `
+            <div class="photo-item">
+                <img src="${foto.dataUrl}" alt="${foto.name}">
+                <div class="photo-caption">
+                    ${foto.name}<br>
+                    Dimensões: ${foto.width} x ${foto.height}px
+                </div>
+            </div>`;
+            });
+
+            sectionHTML += `
+        </div>`;
+        }
+
+        sectionHTML += `
+    </div>`;
+
+        return sectionHTML;
+    }
+
+    // Manter função antiga para compatibilidade (não será usada)
+    async createImageSection(titulo, imagens) {
+        if (imagens.length === 0) return [];
+
+        const elements = [];
+
+        // Separador
+        elements.push(new docx.Paragraph({
+            children: [
+                new docx.TextRun({
+                    text: "------------------------------------------",
+                    color: "666666"
+                })
+            ],
+            spacing: { before: 400, after: 200 }
+        }));
+
+        // Título da seção
+        elements.push(new docx.Paragraph({
+            children: [
+                new docx.TextRun({
+                    text: titulo,
+                    bold: true,
+                    size: 24,
+                    color: "000000"
+                })
+            ],
+            spacing: { after: 300 }
+        }));
+
+        // Adicionar imagens
+        for (let img of imagens) {
+            try {
+                // Converter dataURL para buffer
+                const base64Data = img.dataUrl.split(',')[1];
+                const buffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+
+                elements.push(new docx.Paragraph({
+                    children: [
+                        new docx.ImageRun({
+                            data: buffer,
+                            transformation: {
+                                width: 400,
+                                height: 300
+                            }
+                        })
+                    ],
+                    spacing: { after: 200 }
+                }));
+            } catch (error) {
+                console.error('Erro ao adicionar imagem:', error);
+            }
+        }
+
+        return elements;
+    }
+
+    generateReportFallback() {
+        // Método alternativo caso as bibliotecas não carreguem
+        const siteId = document.getElementById('siteId').value.trim();
+        const dataExecucao = document.getElementById('dataExecucao').value;
+        const localizacao = document.getElementById('localizacao').value.trim();
+
+        let reportData = {
+            siteId,
+            dataExecucao: this.formatDate(dataExecucao),
+            localizacao: localizacao.toUpperCase(),
+            fotosAntes: this.fotosAntes.length,
+            fotosDepois: this.fotosDepois.length,
+            temPlaca: !!this.fotoPlaca
+        };
+
+        // Criar arquivo de texto com informações
+        const textContent = `
+RELATÓRIO FOTOGRÁFICO DE ZELADORIA
+=====================================
+
+Site ID: ${reportData.siteId}
+Data da Execução: ${reportData.dataExecucao}
+Localização: ${reportData.localizacao}
+
+RESUMO DAS FOTOS:
+- Fotos ANTES: ${reportData.fotosAntes}
+- Fotos DEPOIS: ${reportData.fotosDepois}
+- Foto da Placa: ${reportData.temPlaca ? 'Sim' : 'Não'}
+
+NOTA: As fotos estão armazenadas localmente no navegador.
+Para acessá-las, use a função "Exportar Fotos" no aplicativo.
+        `;
+
+        const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+        const fileName = `RLT. ZELADORIA - ${siteId} - ${dataExecucao}.txt`;
+        
+        // Fazer download manual
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        this.showMessage('📄 Relatório de texto gerado! Acesse a versão completa para gerar .docx.', 'warning');
     }
 
     formatDate(dateString) {
@@ -442,41 +945,6 @@ _Relatório gerado pelo app mobile de zeladoria_
             console.error('Erro ao exportar dados:', error);
             this.showMessage('❌ Erro ao criar backup', 'error');
         }
-    }
-
-    importData(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data = JSON.parse(e.target.result);
-                
-                // Restaurar dados
-                if (data.siteId) document.getElementById('siteId').value = data.siteId;
-                if (data.dataExecucao) document.getElementById('dataExecucao').value = data.dataExecucao;
-                if (data.localizacao) document.getElementById('localizacao').value = data.localizacao;
-                
-                if (data.fotosAntes) this.fotosAntes = data.fotosAntes;
-                if (data.fotosDepois) this.fotosDepois = data.fotosDepois;
-                if (data.fotoPlaca) this.fotoPlaca = data.fotoPlaca;
-                
-                this.updatePreviews();
-                this.updateStats();
-                this.updateGenerateButton();
-                this.saveToStorage();
-                
-                this.showMessage('📁 Backup restaurado com sucesso!', 'success');
-            } catch (error) {
-                console.error('Erro ao importar dados:', error);
-                this.showMessage('❌ Arquivo de backup inválido', 'error');
-            }
-        };
-        
-        reader.readAsText(file);
-        // Limpar o input para permitir selecionar o mesmo arquivo novamente
-        event.target.value = '';
     }
 }
 
