@@ -12,11 +12,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Relatório Zeladoria">
     
-    <!-- Bibliotecas CDN com fallback local -->
-    <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
-    <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
-    <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
-    
     <style>
         * {
             margin: 0;
@@ -364,9 +359,10 @@
                     <li>📝 Preencha os dados básicos do relatório</li>
                     <li>📸 Adicione fotos tocando nas áreas de upload</li>
                     <li>🔍 Visualize as fotos antes de gerar o relatório</li>
-                    <li>📄 Baixe o arquivo .docx pronto para uso</li>
+                    <li>📄 Gere um arquivo HTML com todas as fotos incorporadas</li>
+                    <li>🖨️ Abra o arquivo HTML e use "Imprimir > Salvar como PDF" para converter</li>
                 </ul>
-                <p><strong>💡 Dica:</strong> Se aparecer erro ao gerar o .docx, recarregue a página e aguarde as bibliotecas carregarem.</p>
+                <p><strong>💡 Vantagens:</strong> Funciona 100% no mobile, sem dependências externas, fotos incorporadas no arquivo!</p>
             </div>
 
             <div id="statusMessage"></div>
@@ -526,7 +522,21 @@
             </div>
 
             <button class="generate-btn" id="generateBtn" onclick="generateReport()">
-                🚀 Gerar Relatório
+                � Gerar Relatório HTML
+            </button>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                <button class="share-btn" onclick="shareReport()" style="background: #25D366; color: white; padding: 12px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer;">
+                    📱 Compartilhar
+                </button>
+                <button class="backup-btn" onclick="exportData()" style="background: #FF9800; color: white; padding: 12px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer;">
+                    💾 Backup
+                </button>
+            </div>
+
+            <input type="file" id="importBackup" accept=".json" style="display: none;" onchange="app.importData(event)">
+            <button onclick="document.getElementById('importBackup').click()" style="width: 100%; background: #2196F3; color: white; padding: 12px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 10px;">
+                📁 Restaurar Backup
             </button>
 
             <button class="clear-btn" onclick="clearAll()">
