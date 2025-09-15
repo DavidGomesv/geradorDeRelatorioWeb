@@ -306,19 +306,6 @@
             }
         }
 
-        .offline-indicator {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: #4CAF50;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            z-index: 1000;
-        }
-
         .loading {
             display: none;
             text-align: center;
@@ -363,19 +350,17 @@
     </style>
 </head>
 <body>
-    <div class="offline-indicator">📱 OFFLINE</div>
-    
+
     <div class="container">
         <div class="header">
             <h1>📋 Relatório Fotográfico de Zeladoria</h1>
-            <p>Gerador offline para dispositivos móveis</p>
+            <p>Gerador para dispositivos móveis</p>
         </div>
 
         <div class="form-container">
             <div class="instructions">
                 <h4>📱 Como usar:</h4>
                 <ul>
-                    <li>✅ <strong>Funciona 100% offline</strong> - sem necessidade de internet</li>
                     <li>📝 Preencha os dados básicos do relatório</li>
                     <li>📸 Adicione fotos tocando nas áreas de upload</li>
                     <li>🔍 Visualize as fotos antes de gerar o relatório</li>
@@ -388,7 +373,7 @@
             <!-- Dados básicos do relatório -->
             <div class="form-group">
                 <label for="siteId">🆔 ID do Site:</label>
-                <input type="text" id="siteId" placeholder="Digite o ID do site" required>
+                <input type="text" id="siteId" placeholder="Digite o ID do site" required style="text-transform: uppercase;">
             </div>
 
             <div class="form-group">
@@ -398,7 +383,84 @@
 
             <div class="form-group">
                 <label for="localizacao">📍 Localização:</label>
-                <input type="text" id="localizacao" placeholder="Cidade - Estado" required>
+                <input type="text" id="localizacao" placeholder="Cidade - Estado" required list="cidades-se">
+                <datalist id="cidades-se">
+                    <option value="Aracaju - SE"></option>
+                    <option value="Lagarto - SE"></option>
+                    <option value="Itabaiana - SE"></option>
+                    <option value="São Cristóvão - SE"></option>
+                    <option value="Estância - SE"></option>
+                    <option value="Propriá - SE"></option>
+                    <option value="Tobias Barreto - SE"></option>
+                    <option value="Simão Dias - SE"></option>
+                    <option value="Ribeirópolis - SE"></option>
+                    <option value="Capela - SE"></option>
+                    <option value="Canindé de São Francisco - SE"></option>
+                    <option value="Boquim - SE"></option>
+                    <option value="Poço Redondo - SE"></option>
+                    <option value="Nossa Senhora do Socorro - SE"></option>
+                    <option value="Umbaúba - SE"></option>
+                    <option value="Frei Paulo - SE"></option>
+                    <option value="Glória - SE"></option>
+                    <option value="Neópolis - SE"></option>
+                    <option value="Poço Verde - SE"></option>
+                    <option value="Carira - SE"></option>
+                    <option value="Porto da Folha - SE"></option>
+                    <option value="Arauá - SE"></option>
+                    <option value="Indiaroba - SE"></option>
+                    <option value="Carmópolis - SE"></option>
+                    <option value="Nossa Senhora da Glória - SE"></option>
+                    <option value="Maruim - SE"></option>
+                    <option value="Itabaianinha - SE"></option>
+                    <option value="Laranjeiras - SE"></option>
+                    <option value="Campo do Brito - SE"></option>
+                    <option value="Japaratuba - SE"></option>
+                    <option value="Cristinápolis - SE"></option>
+                    <option value="São Domingos - SE"></option>
+                    <option value="Gararu - SE"></option>
+                    <option value="Aquidabã - SE"></option>
+                    <option value="Riachão do Dantas - SE"></option>
+                    <option value="Pedrinhas - SE"></option>
+                    <option value="Rosário do Catete - SE"></option>
+                    <option value="Tomar do Geru - SE"></option>
+                    <option value="General Maynard - SE"></option>
+                    <option value="Pirambu - SE"></option>
+                    <option value="Divina Pastora - SE"></option>
+                    <option value="Santa Luzia do Itanhy - SE"></option>
+                    <option value="Barra dos Coqueiros - SE"></option>
+                    <option value="Areia Branca - SE"></option>
+                    <option value="Pedra Mole - SE"></option>
+                    <option value="Macambira - SE"></option>
+                    <option value="Nossa Senhora de Lourdes - SE"></option>
+                    <option value="Malhador - SE"></option>
+                    <option value="Salgado - SE"></option>
+                    <option value="São Francisco - SE"></option>
+                    <option value="Santana do São Francisco - SE"></option>
+                    <option value="Cumbe - SE"></option>
+                    <option value="Moita Bonita - SE"></option>
+                    <option value="Muribeca - SE"></option>
+                    <option value="Pacatuba - SE"></option>
+                    <option value="Santa Rosa de Lima - SE"></option>
+                    <option value="Amparo do São Francisco - SE"></option>
+                    <option value="Canhoba - SE"></option>
+                    <option value="Monte Alegre de Sergipe - SE"></option>
+                    <option value="Nossa Senhora Aparecida - SE"></option>
+                    <option value="Pinhão - SE"></option>
+                    <option value="Cedro de São João - SE"></option>
+                    <option value="São Miguel do Aleixo - SE"></option>
+                    <option value="Feira Nova - SE"></option>
+                    <option value="Riachuelo - SE"></option>
+                    <option value="Itaporanga d'Ajuda - SE"></option>
+                    <option value="Telha - SE"></option>
+                    <option value="Malhada dos Bois - SE"></option>
+                    <option value="Brejo Grande - SE"></option>
+                    <option value="Ilha das Flores - SE"></option>
+                    <option value="Gracho Cardoso - SE"></option>
+                    <option value="São José da Coroa Grande - SE"></option>
+                    <option value="Siriri - SE"></option>
+                    <option value="Japoatã - SE"></option>
+                    <option value="Santa Luzia do Norte - SE"></option>
+                </datalist>
             </div>
 
             <!-- Upload de fotos ANTES -->
@@ -406,7 +468,7 @@
                 <h3>🔴 Fotos ANTES</h3>
                 <div class="file-input-wrapper">
                     <div class="file-input">
-                        <input type="file" id="fotosAntes" multiple accept="image/*" capture="environment">
+                        <input type="file" id="fotosAntes" multiple accept="image/*">
                         📸 Toque para adicionar fotos ANTES
                     </div>
                 </div>
@@ -418,7 +480,7 @@
                 <h3>🟢 Fotos DEPOIS</h3>
                 <div class="file-input-wrapper">
                     <div class="file-input">
-                        <input type="file" id="fotosDepois" multiple accept="image/*" capture="environment">
+                        <input type="file" id="fotosDepois" multiple accept="image/*">
                         📸 Toque para adicionar fotos DEPOIS
                     </div>
                 </div>
@@ -430,7 +492,7 @@
                 <h3>🏷️ Foto da Placa</h3>
                 <div class="file-input-wrapper">
                     <div class="file-input">
-                        <input type="file" id="fotoPlaca" accept="image/*" capture="environment">
+                        <input type="file" id="fotoPlaca" accept="image/*">
                         📸 Toque para adicionar foto da PLACA
                     </div>
                 </div>

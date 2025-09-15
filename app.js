@@ -1,5 +1,4 @@
 // Gerador de Relatório Fotográfico - JavaScript
-// Funciona 100% offline no navegador
 
 class RelatorioGenerator {
     constructor() {
@@ -27,7 +26,11 @@ class RelatorioGenerator {
 
         // Event listeners para salvar dados automaticamente
         ['siteId', 'dataExecucao', 'localizacao'].forEach(id => {
-            document.getElementById(id).addEventListener('input', () => {
+            document.getElementById(id).addEventListener('input', (e) => {
+                // Converter siteId para maiúsculas automaticamente
+                if (id === 'siteId') {
+                    e.target.value = e.target.value.toUpperCase();
+                }
                 this.saveToStorage();
                 this.updateGenerateButton();
             });
@@ -40,10 +43,10 @@ class RelatorioGenerator {
     checkLibraries() {
         setTimeout(() => {
             if (typeof docx === 'undefined' || typeof saveAs === 'undefined') {
-                this.showMessage('⚠️ Modo offline detectado. Algumas funcionalidades podem estar limitadas.', 'warning');
-                console.log('Bibliotecas não carregadas - modo offline');
+                this.showMessage('⚠️ Algumas bibliotecas não carregaram. Funcionalidades limitadas.', 'warning');
+                console.log('Bibliotecas não carregadas');
             } else {
-                this.showMessage('✅ Aplicação pronta para uso offline!', 'success');
+                this.showMessage('✅ Aplicação pronta para uso!', 'success');
             }
         }, 1000);
     }
@@ -271,7 +274,7 @@ class RelatorioGenerator {
             const doc = new docx.Document({
                 creator: "Gerador de Relatório Zeladoria",
                 title: `Relatório Zeladoria - ${siteId}`,
-                description: "Relatório fotográfico de zeladoria gerado offline",
+                description: "Relatório fotográfico de zeladoria",
                 sections: [{
                     properties: {},
                     children: [
@@ -452,7 +455,7 @@ Para acessá-las, use a função "Exportar Fotos" no aplicativo.
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        this.showMessage('📄 Relatório de texto gerado! Use a versão online para gerar .docx completo.', 'warning');
+        this.showMessage('📄 Relatório de texto gerado! Acesse a versão completa para gerar .docx.', 'warning');
     }
 
     formatDate(dateString) {
