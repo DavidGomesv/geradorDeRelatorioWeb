@@ -13,9 +13,9 @@
     <meta name="apple-mobile-web-app-title" content="Relatório Zeladoria">
     
     <!-- Bibliotecas CDN com fallback local -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.2.2/docx.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+    <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
     
     <style>
         * {
@@ -366,6 +366,7 @@
                     <li>🔍 Visualize as fotos antes de gerar o relatório</li>
                     <li>📄 Baixe o arquivo .docx pronto para uso</li>
                 </ul>
+                <p><strong>💡 Dica:</strong> Se aparecer erro ao gerar o .docx, recarregue a página e aguarde as bibliotecas carregarem.</p>
             </div>
 
             <div id="statusMessage"></div>

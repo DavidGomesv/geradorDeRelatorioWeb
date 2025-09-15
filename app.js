@@ -43,12 +43,20 @@ class RelatorioGenerator {
     checkLibraries() {
         setTimeout(() => {
             if (typeof docx === 'undefined' || typeof saveAs === 'undefined') {
-                this.showMessage('⚠️ Algumas bibliotecas não carregaram. Funcionalidades limitadas.', 'warning');
-                console.log('Bibliotecas não carregadas');
+                this.showMessage('⚠️ Algumas bibliotecas não carregaram. Tentando novamente...', 'warning');
+                console.log('Bibliotecas não carregadas, tentando novamente...');
+                // Tentar novamente após mais tempo
+                setTimeout(() => {
+                    if (typeof docx === 'undefined' || typeof saveAs === 'undefined') {
+                        this.showMessage('❌ Erro ao carregar bibliotecas. Recarregue a página.', 'error');
+                    } else {
+                        this.showMessage('✅ Aplicação pronta para uso!', 'success');
+                    }
+                }, 3000);
             } else {
                 this.showMessage('✅ Aplicação pronta para uso!', 'success');
             }
-        }, 1000);
+        }, 2000);
     }
 
     setDefaultDate() {
@@ -256,8 +264,9 @@ class RelatorioGenerator {
     }
 
     async generateReport() {
-        if (typeof docx === 'undefined') {
-            this.generateReportFallback();
+        // Verificar se as bibliotecas estão disponíveis
+        if (typeof docx === 'undefined' || typeof saveAs === 'undefined') {
+            this.showMessage('❌ Bibliotecas não carregadas. Recarregue a página e tente novamente.', 'error');
             return;
         }
 
@@ -345,8 +354,7 @@ class RelatorioGenerator {
             
         } catch (error) {
             console.error('Erro ao gerar relatório:', error);
-            this.showMessage('❌ Erro ao gerar relatório. Tentando método alternativo...', 'error');
-            this.generateReportFallback();
+            this.showMessage('❌ Erro ao gerar relatório. Recarregue a página e tente novamente.', 'error');
         } finally {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('generateBtn').style.display = 'block';
