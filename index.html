@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Fotográfico de Zeladoria</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Relatório Zeladoria">
+    
+    <!-- Bibliotecas CDN com fallback local -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.2.2/docx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .form-container {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+        }
+
+        .upload-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .upload-section h3 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .file-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .file-input:hover {
+            border-color: #4CAF50;
+            background: #f0f8f0;
+        }
+
+        .file-input input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .preview-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f0f0f0;
+            aspect-ratio: 1;
+        }
+
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-item .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .generate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .clear-btn {
+            width: 100%;
+            padding: 12px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #ddd;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #4CAF50;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .stat-card .label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .form-container {
+                padding: 15px;
+            }
+            
+            .file-input {
+                padding: 20px 15px;
+                font-size: 18px;
+            }
+            
+            .generate-btn {
+                padding: 18px;
+                font-size: 20px;
+            }
+            
+            .preview-container {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            }
+        }
+
+        .offline-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #4CAF50;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .instructions {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .instructions h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .instructions ul {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-indicator">📱 OFFLINE</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>📋 Relatório Fotográfico de Zeladoria</h1>
+            <p>Gerador offline para dispositivos móveis</p>
+        </div>
+
+        <div class="form-container">
+            <div class="instructions">
+                <h4>📱 Como usar:</h4>
+                <ul>
+                    <li>✅ <strong>Funciona 100% offline</strong> - sem necessidade de internet</li>
+                    <li>📝 Preencha os dados básicos do relatório</li>
+                    <li>📸 Adicione fotos tocando nas áreas de upload</li>
+                    <li>🔍 Visualize as fotos antes de gerar o relatório</li>
+                    <li>📄 Baixe o arquivo .docx pronto para uso</li>
+                </ul>
+            </div>
+
+            <div id="statusMessage"></div>
+
+            <!-- Dados básicos do relatório -->
+            <div class="form-group">
+                <label for="siteId">🆔 ID do Site:</label>
+                <input type="text" id="siteId" placeholder="Digite o ID do site" required>
+            </div>
+
+            <div class="form-group">
+                <label for="dataExecucao">📅 Data da Execução:</label>
+                <input type="date" id="dataExecucao" required>
+            </div>
+
+            <div class="form-group">
+                <label for="localizacao">📍 Localização:</label>
+                <input type="text" id="localizacao" placeholder="Cidade - Estado" required>
+            </div>
+
+            <!-- Upload de fotos ANTES -->
+            <div class="upload-section">
+                <h3>🔴 Fotos ANTES</h3>
+                <div class="file-input-wrapper">
+                    <div class="file-input">
+                        <input type="file" id="fotosAntes" multiple accept="image/*" capture="environment">
+                        📸 Toque para adicionar fotos ANTES
+                    </div>
+                </div>
+                <div id="previewAntes" class="preview-container"></div>
+            </div>
+
+            <!-- Upload de fotos DEPOIS -->
+            <div class="upload-section">
+                <h3>🟢 Fotos DEPOIS</h3>
+                <div class="file-input-wrapper">
+                    <div class="file-input">
+                        <input type="file" id="fotosDepois" multiple accept="image/*" capture="environment">
+                        📸 Toque para adicionar fotos DEPOIS
+                    </div>
+                </div>
+                <div id="previewDepois" class="preview-container"></div>
+            </div>
+
+            <!-- Upload da foto da placa -->
+            <div class="upload-section">
+                <h3>🏷️ Foto da Placa</h3>
+                <div class="file-input-wrapper">
+                    <div class="file-input">
+                        <input type="file" id="fotoPlaca" accept="image/*" capture="environment">
+                        📸 Toque para adicionar foto da PLACA
+                    </div>
+                </div>
+                <div id="previewPlaca" class="preview-container"></div>
+            </div>
+
+            <!-- Estatísticas -->
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="number" id="countAntes">0</div>
+                    <div class="label">Fotos Antes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="countDepois">0</div>
+                    <div class="label">Fotos Depois</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="countPlaca">0</div>
+                    <div class="label">Foto Placa</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="countTotal">0</div>
+                    <div class="label">Total</div>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Gerando relatório...</p>
+            </div>
+
+            <button class="generate-btn" id="generateBtn" onclick="generateReport()">
+                🚀 Gerar Relatório
+            </button>
+
+            <button class="clear-btn" onclick="clearAll()">
+                🗑️ Limpar Tudo
+            </button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
