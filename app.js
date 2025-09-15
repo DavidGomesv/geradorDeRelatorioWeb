@@ -259,14 +259,14 @@ class RelatorioGenerator {
         document.getElementById('generateBtn').style.display = 'none';
 
         try {
-            // Gerar arquivo RTF (compatível com Word)
-            const rtfBlob = await this.generateRTFReport(siteId, dataExecucao, localizacao);
+            // Gerar arquivo HTML (compatível com Word)
+            const htmlBlob = await this.generateWordHTMLReport(siteId, dataExecucao, localizacao);
             
             // Criar arquivo para download
             const fileName = `RLT_ZELADORIA_${siteId}_${dataExecucao}.doc`;
             
             // Download do arquivo
-            const url = URL.createObjectURL(rtfBlob);
+            const url = URL.createObjectURL(htmlBlob);
             const a = document.createElement('a');
             a.href = url;
             a.download = fileName;
@@ -286,44 +286,107 @@ class RelatorioGenerator {
         }
     }
 
-    async generateRTFReport(siteId, dataExecucao, localizacao) {
+    async generateWordHTMLReport(siteId, dataExecucao, localizacao) {
         const dataFormatada = this.formatDate(dataExecucao);
 
-        let rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}
-\\f0\\fs28 
-{\\qc\\b RELATÓRIO FOTOGRÁFICO DE ZELADORIA\\par}
-\\par
-{\\b Site ID:} ${siteId}\\par
-{\\b Data da Execução:} ${dataFormatada}\\par
-{\\b Localização:} ${localizacao.toUpperCase()}\\par
-\\par`;
+        let htmlContent = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<meta name="ProgId" content="Word.Document">
+<meta name="Generator" content="Microsoft Word 15">
+<meta name="Originator" content="Microsoft Word 15">
+<!--[if !mso]>
+<style>
+v\\:* {behavior:url(#default#VML);}
+o\\:* {behavior:url(#default#VML);}
+w\\:* {behavior:url(#default#VML);}
+.shape {behavior:url(#default#VML);}
+</style>
+<![endif]-->
+<style>
+@page {
+    margin: 2cm;
+}
+body {
+    font-family: "Times New Roman", serif;
+    font-size: 12pt;
+    line-height: 1.6;
+    color: #000;
+}
+h1 {
+    text-align: center;
+    font-size: 18pt;
+    font-weight: bold;
+    margin-bottom: 20pt;
+    text-transform: uppercase;
+}
+h2 {
+    font-size: 14pt;
+    font-weight: bold;
+    margin-top: 20pt;
+    margin-bottom: 10pt;
+    text-transform: uppercase;
+}
+.info-section {
+    margin-bottom: 20pt;
+}
+.info-item {
+    margin-bottom: 8pt;
+    font-weight: bold;
+}
+.photo-list {
+    margin-left: 20pt;
+    margin-bottom: 15pt;
+}
+.photo-item {
+    margin-bottom: 5pt;
+}
+.footer {
+    margin-top: 30pt;
+    font-style: italic;
+    font-size: 10pt;
+    text-align: center;
+}
+</style>
+</head>
+<body>
 
-        // Adicionar seções de fotos
-        rtfContent += this.createRTFPhotoSection("FOTOS - ANTES", this.fotosAntes);
-        rtfContent += this.createRTFPhotoSection("FOTOS - DEPOIS", this.fotosDepois);
-        rtfContent += this.createRTFPhotoSection("PLACA DE IDENTIFICAÇÃO", this.fotoPlaca ? [this.fotoPlaca] : []);
+<h1>RELATÓRIO FOTOGRÁFICO DE ZELADORIA</h1>
 
-        rtfContent += '\\par\\par{\\i Relatório gerado automaticamente pelo Sistema de Zeladoria}\\par';
-        rtfContent += '}';
+<div class="info-section">
+    <div class="info-item">Site ID: ${siteId}</div>
+    <div class="info-item">Data da Execução: ${dataFormatada}</div>
+    <div class="info-item">Localização: ${localizacao.toUpperCase()}</div>
+</div>
 
-        return new Blob([rtfContent], { type: 'application/rtf' });
+${this.createWordHTMLPhotoSection("FOTOS - ANTES", this.fotosAntes)}
+${this.createWordHTMLPhotoSection("FOTOS - DEPOIS", this.fotosDepois)}
+${this.createWordHTMLPhotoSection("PLACA DE IDENTIFICAÇÃO", this.fotoPlaca ? [this.fotoPlaca] : [])}
+
+<div class="footer">
+    <p>Relatório gerado automaticamente pelo Sistema de Zeladoria</p>
+</div>
+
+</body>
+</html>`;
+
+        return new Blob([htmlContent], { type: 'application/msword;charset=utf-8' });
     }
 
-    createRTFPhotoSection(titulo, fotos) {
-        let sectionRTF = `\\par
-{\\b\\fs24 ${titulo}}\\par
-\\par`;
+    createWordHTMLPhotoSection(titulo, fotos) {
+        let sectionHTML = `<h2>${titulo}</h2>`;
 
         if (fotos.length === 0) {
-            sectionRTF += `{\\i Nenhuma foto adicionada para esta seção}\\par`;
+            sectionHTML += '<p><i>Nenhuma foto adicionada para esta seção</i></p>';
         } else {
+            sectionHTML += '<div class="photo-list">';
             fotos.forEach((foto, index) => {
-                sectionRTF += `Foto ${index + 1}: ${foto.name} (${foto.width}x${foto.height}px)\\par`;
+                sectionHTML += `<div class="photo-item">Foto ${index + 1}: ${foto.name} (${foto.width}x${foto.height}px)</div>`;
             });
+            sectionHTML += '</div>';
         }
 
-        sectionRTF += '\\par';
-        return sectionRTF;
+        return sectionHTML;
     }
 
     formatDate(dateString) {
